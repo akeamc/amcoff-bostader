@@ -1,10 +1,11 @@
 use std::{
-    path::Path,
+    collections::HashSet,
+    path::{Path, PathBuf},
     process::{Command, Output},
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use git2::{IndexAddOption, Repository, Signature, Time};
+use git2::{Commit, IndexAddOption, Repository, Signature, Time, TreeWalkMode, TreeWalkResult};
 use tracing::{error, info, warn};
 
 pub fn repo_root(repo: &Repository) -> &Path {
@@ -84,8 +85,56 @@ pub fn add_commit_push_if_changed(repo: &Repository) -> Result<(), git2::Error> 
 }
 
 pub fn push(repo: &Repository) -> std::io::Result<Output> {
+  Command::new("git")
+      .arg("push")
+      .current_dir(repo_root(repo))
+      .output()
+}
+
+pub fn pull(repo: &Repository) -> std::io::Result<Output> {
     Command::new("git")
-        .arg("push")
+        .arg("pull")
         .current_dir(repo_root(repo))
         .output()
+}
+
+pub fn for_each_file(
+    repo: &Repository,
+    mut entry_cb: impl FnMut(&Commit, String, &[u8]) -> (),
+) -> Result<(), git2::Error> {
+    // Set to track processed commits
+    let mut processed_commits = HashSet::new();
+
+    // Traverse the commits
+    let mut revwalk = repo.revwalk()?;
+    revwalk.push_head()?;
+
+    for oid in revwalk {
+        let oid = oid?;
+        if processed_commits.contains(&oid) {
+            continue;
+        }
+
+        let commit = repo.find_commit(oid)?;
+        processed_commits.insert(oid);
+
+        // Get the trees for the current commit and its parent (if any)
+        let tree = commit.tree()?;
+
+        // Read each file in the current commit
+        tree.walk(TreeWalkMode::PreOrder, |root, entry| {
+            if let Some(blob) = entry
+                .to_object(&repo)
+                .ok()
+                .and_then(|obj| obj.into_blob().ok())
+            {
+                let file_path = format!("{}{}", root, entry.name().unwrap_or(""));
+
+                entry_cb(&commit, file_path, blob.content())
+            }
+            TreeWalkResult::Ok
+        })?;
+    }
+
+    Ok(())
 }

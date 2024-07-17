@@ -5,10 +5,16 @@ edition = "2021"
 authors = ["Åke Amcoff <ake@amcoff.net>"]
 
 [dependencies]
+anyhow = "1.0.86"
+archive-af = { version = "0.1.0", path = "../archive", default-features = false }
 axum = "0.7.5"
+dotenvy = "0.15.7"
+git2 = "0.19.0"
 reqwest = { version = "0.12.5", features = ["json", "rustls-tls"] }
 serde = { version = "1.0.204", features = ["derive"] }
 thiserror = "1.0.62"
 tokio = { version = "1.38.0", features = ["full"] }
 tower = { version = "0.4.13", features = ["buffer", "limit"] }
 tower-http = { version = "0.5.2", features = ["cors", "limit"] }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }

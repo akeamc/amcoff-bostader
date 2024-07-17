@@ -27,12 +27,14 @@ const columnHelper = createColumnHelper<Product>();
 
 const columns = [
   columnHelper.accessor("queueNumber", {
-    header: "plats"
+    header: "plats",
   }),
   columnHelper.accessor("numberOfReservations", {
-    header: "tot."
+    header: "tot.",
   }),
-  // columnHelper.accessor("reserved", {}),
+  columnHelper.accessor("reserved", {
+    cell: info => info.getValue() === "true" ? "y" : "",
+  }),
   columnHelper.accessor("rent", {
     cell: (info) => {
       const rent = parseFloat(info.getValue());
@@ -49,11 +51,15 @@ const columns = [
       );
     },
   }),
-  columnHelper.accessor("area", {meta: {filterVariant: "text"}}),
+  columnHelper.accessor("area", { meta: { filterVariant: "text" } }),
   columnHelper.accessor("floor", {}),
   columnHelper.accessor("description", {}),
   columnHelper.accessor("sqrMtrs", {
-    cell: (info) => parseFloat(info.getValue()).toLocaleString("sv", {maximumFractionDigits: 1, minimumFractionDigits: 1}),
+    cell: (info) =>
+      parseFloat(info.getValue()).toLocaleString("sv", {
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 1,
+      }),
   }),
   columnHelper.accessor("address", {}),
   columnHelper.accessor("type", {
@@ -64,7 +70,7 @@ const columns = [
 ];
 
 export default function VacancyTable() {
-  const { data } = useVacancies();
+  const { data, dataUpdatedAt, isFetching } = useVacancies();
 
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -87,6 +93,7 @@ export default function VacancyTable() {
 
   return (
     <div className="p-2">
+      <p>{new Date(dataUpdatedAt).toLocaleString("sv", {hour: "2-digit", minute: "2-digit", second: "2-digit"})} {isFetching ? "..." : null}</p>
       <div className="h-2" />
       <table>
         <thead>
@@ -210,8 +217,8 @@ function Filter({ column }: { column: Column<Product, unknown> }) {
       type="text"
       value={(columnFilterValue ?? "") as string}
     />
-    // See faceted column filters example for datalist search suggestions
-  ) : null;
+  ) : // See faceted column filters example for datalist search suggestions
+    null;
 }
 
 // A typical debounced input react component

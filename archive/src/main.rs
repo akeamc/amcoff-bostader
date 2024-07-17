@@ -2,18 +2,17 @@ use std::{
     collections::HashSet,
     fs::{self, create_dir_all},
     path::PathBuf,
-    process::Command,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::Duration,
 };
 
 use anyhow::Context;
-use archive_af::git::{add_commit_push_if_changed, push, repo_root};
-use clap::{Parser, Subcommand};
+use archive_af::{git::{add_commit_push_if_changed, repo_root}, read::queue_history};
+use clap::Parser;
 use client_af::{Client, Product};
 use dotenvy::dotenv;
-use git2::{IndexAddOption, Repository, Signature, Time};
+use git2::Repository;
 use tokio::time::{interval, MissedTickBehavior};
-use tracing::{error, info};
+use tracing::error;
 
 #[derive(Debug, Parser)]
 pub struct Args {
@@ -26,6 +25,7 @@ pub struct Args {
 #[derive(Debug, Parser)]
 pub enum Cmd {
     Collect(Collect),
+    Read(Read),
 }
 
 #[derive(Debug, Parser)]
@@ -37,6 +37,9 @@ pub struct Collect {
     #[clap(long, env, default_value = "60")]
     interval_secs: u64,
 }
+
+#[derive(Debug, Parser)]
+pub struct Read {}
 
 fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
     let dir = repo_root(repo).join("vacant");
@@ -104,6 +107,11 @@ async fn collect(repo: &Repository, args: Collect) {
     }
 }
 
+fn read(repo: &Repository, args: Read) -> anyhow::Result<()> {
+    queue_history(repo)?;
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = dotenv();
@@ -114,6 +122,7 @@ async fn main() -> anyhow::Result<()> {
 
     match command {
         Cmd::Collect(args) => collect(&repo, args).await,
+        Cmd::Read(args) => read(&repo, args)?,
     }
 
     Ok(())

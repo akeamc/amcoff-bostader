@@ -29,8 +29,8 @@ export async function getVacant(): Promise<Product[]> {
     {
       headers: {
         authorization: basicAuth(email, password),
-        "user-agent":
-          "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0",
+        // "user-agent":
+          // "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0",
       },
     },
   ).then((res) => res.json());
