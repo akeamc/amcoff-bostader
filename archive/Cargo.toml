@@ -1,0 +1,22 @@
+[package]
+name = "archive-af"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { version = "1.0.86", optional = true }
+clap = { version = "4.5.9", features = ["derive", "env"], optional = true }
+client-af = { version = "0.1.0", path = "../client" }
+dotenvy = { version = "0.15.7", optional = true }
+git2 = "0.19.0"
+serde_json = "1.0.120"
+tokio = { version = "1.38.1", default-features = false }
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional = true }
+
+[features]
+cli = ["dep:clap", "dep:dotenvy", "tokio/full", "dep:tracing-subscriber", "dep:anyhow"]
+
+[[bin]]
+name = "archive-af"
+required-features = ["cli"]
