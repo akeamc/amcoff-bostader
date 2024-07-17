@@ -2,6 +2,7 @@ use std::{
     collections::HashSet,
     fs::{self, create_dir_all},
     path::PathBuf,
+    process::Command,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
@@ -9,7 +10,7 @@ use anyhow::Context;
 use clap::Parser;
 use client_af::{Client, Product};
 use dotenvy::dotenv;
-use git2::{Cred, IndexAddOption, PushOptions, RemoteCallbacks, Repository, Signature, Time};
+use git2::{IndexAddOption, Repository, Signature, Time};
 use tokio::time::{interval, MissedTickBehavior};
 use tracing::{error, info};
 
@@ -25,13 +26,16 @@ pub struct Args {
     interval_secs: u64,
 }
 
-fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
+fn repo_root(repo: &Repository) -> anyhow::Result<PathBuf> {
     let mut repo_root = repo.path();
     if !repo.is_bare() {
         repo_root = repo_root.parent().ok_or(anyhow::anyhow!("orphan .git"))?;
     }
+    Ok(repo_root.to_owned())
+}
 
-    let dir = repo_root.join("vacant");
+fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
+    let dir = repo_root(repo)?.join("vacant");
     create_dir_all(&dir)?;
 
     let mut to_remove = fs::read_dir(&dir)?
@@ -106,22 +110,27 @@ fn commit_changes(repo: &Repository) -> anyhow::Result<()> {
         "committed changes"
     );
 
-    // Set up callbacks for authentication.
-    let mut callbacks = RemoteCallbacks::new();
-    callbacks.credentials(|_url, username_from_url, _allowed_types| {
-        Cred::ssh_key_from_agent(username_from_url.unwrap())
-    });
+    // // Set up callbacks for authentication.
+    // let mut callbacks = RemoteCallbacks::new();
+    // callbacks.credentials(|_url, username_from_url, _allowed_types| {
+    //     Cred::ssh_key_from_agent(username_from_url.unwrap())
+    // });
 
-    // Prepare push options.
-    let mut push_options = PushOptions::new();
-    push_options.remote_callbacks(callbacks);
+    // // Prepare push options.
+    // let mut push_options = PushOptions::new();
+    // push_options.remote_callbacks(callbacks);
 
-    // Push changes to the remote repository.
-    let mut remote = repo.find_remote("origin")?;
-    remote.push(
-        &["refs/heads/main:refs/heads/main"],
-        Some(&mut push_options),
-    )?;
+    // // Push changes to the remote repository.
+    // let mut remote = repo.find_remote("origin")?;
+    // remote.push(
+    //     &["refs/heads/main:refs/heads/main"],
+    //     Some(&mut push_options),
+    // )?;
+
+    Command::new("git")
+        .arg("push")
+        .current_dir(repo_root(repo)?)
+        .output()?;
 
     info!("pushed");
 
@@ -137,7 +146,12 @@ fn write_and_commit_products(products: &[Product], repo: &Repository) -> anyhow:
 async fn main() -> anyhow::Result<()> {
     let _ = dotenv();
     tracing_subscriber::fmt::init();
-    let Args { repo, email, password, interval_secs } = Args::parse();
+    let Args {
+        repo,
+        email,
+        password,
+        interval_secs,
+    } = Args::parse();
 
     let repo = Repository::open(repo)?;
 
