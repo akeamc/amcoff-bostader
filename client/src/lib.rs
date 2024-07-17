@@ -32,41 +32,43 @@ mod as_str {
 
 time::serde::format_description!(yyyy_mm_dd, Date, "[year]-[month]-[day]");
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Product {
-    pub product_id: String,
-    #[serde(rename = "type")]
-    pub typ: String,
-    pub status: Option<()>,
-    pub description: String,
-    pub short_description: String,
-    pub area: String,
-    #[serde(rename = "objectnumber")]
-    pub object_number: String,
-    pub lghnummer: String,
-    pub address: String,
-    pub zipcode: String,
-    pub city: String,
-    #[serde(with = "as_str")]
-    pub floor: i8,
-    #[serde(with = "as_str")]
-    pub sqr_mtrs: f32,
-    #[serde(with = "as_str")]
-    pub reserved: bool,
-    #[serde(with = "as_str")]
-    pub number_of_reservations: u32,
-    #[serde(with = "as_str")]
-    pub queue_number: u32,
-    #[serde(with = "yyyy_mm_dd")]
-    pub move_in_date: Date,
-    #[serde(with = "yyyy_mm_dd")]
-    pub reserve_from_date: Date,
-    #[serde(with = "yyyy_mm_dd")]
-    pub reserve_until_date: Date,
-    #[serde(with = "as_str")]
-    pub rent: u32,
-}
+// #[derive(Debug, Serialize, Deserialize)]
+// #[serde(rename_all = "camelCase")]
+// pub struct Product {
+//     pub product_id: String,
+//     #[serde(rename = "type")]
+//     pub typ: String,
+//     pub status: Option<()>,
+//     pub description: String,
+//     pub short_description: String,
+//     pub area: String,
+//     #[serde(rename = "objectnumber")]
+//     pub object_number: String,
+//     pub lghnummer: String,
+//     pub address: String,
+//     pub zipcode: String,
+//     pub city: String,
+//     #[serde(with = "as_str")]
+//     pub floor: i8,
+//     #[serde(with = "as_str")]
+//     pub sqr_mtrs: f32,
+//     #[serde(with = "as_str")]
+//     pub reserved: bool,
+//     #[serde(with = "as_str")]
+//     pub number_of_reservations: u32,
+//     #[serde(with = "as_str")]
+//     pub queue_number: u32,
+//     #[serde(with = "yyyy_mm_dd")]
+//     pub move_in_date: Date,
+//     #[serde(with = "yyyy_mm_dd")]
+//     pub reserve_from_date: Date,
+//     #[serde(with = "yyyy_mm_dd")]
+//     pub reserve_until_date: Date,
+//     #[serde(with = "as_str")]
+//     pub rent: u32,
+// }
+
+pub type Product = serde_json::Value;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListVacantError {

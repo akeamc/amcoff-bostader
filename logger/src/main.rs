@@ -47,7 +47,17 @@ fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
         .context("collect to_remove")?;
 
     for product in products {
-        let filename = format!("{}-{}", product.product_id, product.area);
+        let filename = format!(
+            "{}-{}",
+            product
+                .get("productId")
+                .and_then(|v| v.as_str())
+                .ok_or(anyhow::anyhow!("missing productId"))?,
+            product
+                .get("area")
+                .and_then(|v| v.as_str())
+                .ok_or(anyhow::anyhow!("missing area"))?,
+        );
 
         let path = dir.join(filename).with_extension("json");
         std::fs::write(&path, serde_json::to_string_pretty(product)?)?;

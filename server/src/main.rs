@@ -1,12 +1,16 @@
 use std::time::Duration;
 
-use axum::{error_handling::HandleErrorLayer, extract::{Query, State}, response::{IntoResponse, Response}, routing::get, Router};
+use axum::{
+    error_handling::HandleErrorLayer,
+    extract::{Query, State},
+    response::{IntoResponse, Response},
+    routing::get,
+    Router,
+};
 use reqwest::{Client, StatusCode};
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
-use tower::{
-    buffer::BufferLayer, limit::{RateLimitLayer}, BoxError, ServiceBuilder
-};
+use tower::{buffer::BufferLayer, limit::RateLimitLayer, BoxError, ServiceBuilder};
 use tower_http::cors::CorsLayer;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,7 +24,7 @@ struct GeocodeQuery {
 #[derive(Debug, thiserror::Error)]
 enum GeocodeError {
     #[error(transparent)]
-    Http(#[from] reqwest::Error)
+    Http(#[from] reqwest::Error),
 }
 
 impl IntoResponse for GeocodeError {
@@ -29,10 +33,18 @@ impl IntoResponse for GeocodeError {
     }
 }
 
-async fn geocode(State(state): State<AppState>, Query(query): Query<GeocodeQuery>) -> Result<impl IntoResponse, GeocodeError> {
+async fn geocode(
+    State(state): State<AppState>,
+    Query(query): Query<GeocodeQuery>,
+) -> Result<impl IntoResponse, GeocodeError> {
     println!("handling {query:?}");
 
-    let res = state.client.get("https://nominatim.openstreetmap.org/search.php?format=jsonv2").query(&query).send().await?;
+    let res = state
+        .client
+        .get("https://nominatim.openstreetmap.org/search.php?format=jsonv2")
+        .query(&query)
+        .send()
+        .await?;
     Ok(([("content-type", "application/json")], res.text().await?))
 }
 
@@ -44,19 +56,18 @@ struct AppState {
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route(
-            "/geocode",
-            get(geocode).route_layer(ServiceBuilder::new()),
+        .route("/geocode", get(geocode).route_layer(ServiceBuilder::new()))
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|err: BoxError| async move {
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("Unhandled error: {}", err),
+                    )
+                }))
+                .layer(BufferLayer::new(1024))
+                .layer(RateLimitLayer::new(1, Duration::from_secs(1))),
         )
-        .layer(ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(|err: BoxError| async move {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Unhandled error: {}", err),
-            )
-        }))
-        .layer(BufferLayer::new(1024))
-        .layer(RateLimitLayer::new(1, Duration::from_secs(1))),)
         .layer(CorsLayer::permissive())
         .with_state(AppState {
             client: Client::builder()
