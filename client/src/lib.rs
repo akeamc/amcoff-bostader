@@ -1,92 +1,55 @@
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use error::{Error, ErrorResponse};
+use reqwest::IntoUrl;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::{ExposeSecret, SecretString};
 use serde::Deserialize;
 
-pub const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+pub const USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("CARGO_PKG_REPOSITORY"),
+    ")"
+);
 
-mod as_str {
-    use std::str::FromStr;
+mod error;
+mod model;
 
-    use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+pub use model::*;
+use serde_json::Value;
+use tracing::warn;
 
-    pub fn serialize<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-        T: ToString,
-    {
-        value.to_string().serialize(serializer)
-    }
-
-    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where
-        D: Deserializer<'de>,
-        T: FromStr,
-    {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(|_| de::Error::custom("from_str failed"))
-    }
-}
-
-time::serde::format_description!(yyyy_mm_dd, Date, "[year]-[month]-[day]");
-
-// #[derive(Debug, Serialize, Deserialize)]
-// #[serde(rename_all = "camelCase")]
-// pub struct Product {
-//     pub product_id: String,
-//     #[serde(rename = "type")]
-//     pub typ: String,
-//     pub status: Option<()>,
-//     pub description: String,
-//     pub short_description: String,
-//     pub area: String,
-//     #[serde(rename = "objectnumber")]
-//     pub object_number: String,
-//     pub lghnummer: String,
-//     pub address: String,
-//     pub zipcode: String,
-//     pub city: String,
-//     #[serde(with = "as_str")]
-//     pub floor: i8,
-//     #[serde(with = "as_str")]
-//     pub sqr_mtrs: f32,
-//     #[serde(with = "as_str")]
-//     pub reserved: bool,
-//     #[serde(with = "as_str")]
-//     pub number_of_reservations: u32,
-//     #[serde(with = "as_str")]
-//     pub queue_number: u32,
-//     #[serde(with = "yyyy_mm_dd")]
-//     pub move_in_date: Date,
-//     #[serde(with = "yyyy_mm_dd")]
-//     pub reserve_from_date: Date,
-//     #[serde(with = "yyyy_mm_dd")]
-//     pub reserve_until_date: Date,
-//     #[serde(with = "as_str")]
-//     pub rent: u32,
-// }
-
-pub type Product = serde_json::Value;
-
-#[derive(Debug, thiserror::Error)]
-pub enum ListVacantError {
-    #[error(transparent)]
-    ReqwestMiddleware(#[from] reqwest_middleware::Error),
-    #[error(transparent)]
-    Reqwest(#[from] reqwest::Error),
-    #[error("error returned from api: {0}")]
-    ApiError(String),
-}
-
-pub struct Client {
-    inner: ClientWithMiddleware,
+#[derive(Debug, Clone)]
+pub struct Credentials {
     email: String,
     password: SecretString,
 }
 
-impl Client {
+impl Credentials {
     pub fn new(email: impl Into<String>, password: impl Into<SecretString>) -> Self {
+        Self {
+            email: email.into(),
+            password: password.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Client {
+    inner: ClientWithMiddleware,
+    credentials: Option<Credentials>,
+}
+
+impl Default for Client {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Client {
+    pub fn new() -> Self {
         let client = reqwest::Client::builder()
             .user_agent(USER_AGENT)
             .danger_accept_invalid_certs(true)
@@ -99,48 +62,105 @@ impl Client {
 
         Self {
             inner: client,
-            email: email.into(),
-            password: password.into(),
+            credentials: None,
         }
     }
 
-    pub async fn list_vacant(&self) -> Result<Vec<Product>, ListVacantError> {
+    pub fn with_credentials(mut self, credentials: Credentials) -> Self {
+        self.credentials = Some(credentials);
+        self
+    }
+
+    fn get(&self, url: impl IntoUrl) -> RequestBuilder {
+        let builder = self.inner.get(url);
+
+        if let Some(ref credentials) = self.credentials {
+            builder.basic_auth(
+                credentials.email.clone(),
+                Some(credentials.password.expose_secret()),
+            )
+        } else {
+            builder
+        }
+    }
+
+    pub async fn list_vacant(&self) -> Result<Vec<Property>, Error> {
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
         enum Response {
-            Product {
-                product: Vec<Product>,
-            },
-            Error {
-                error: String,
-                message: Option<String>,
-            },
+            Product { product: Vec<Product> },
+            Error(ErrorResponse),
         }
 
         match self
-            .inner
             .get("https://diremoapi.afbostader.se/redimo/rest/vacantproducts?lang=sv_SE&type=1")
-            .basic_auth(&self.email, Some(self.password.expose_secret()))
             .send()
             .await?
             .json::<Response>()
             .await?
         {
-            Response::Product { product } => Ok(product),
-            Response::Error { error, message } => {
-                Err(ListVacantError::ApiError(message.unwrap_or(error)))
-            }
+            Response::Product { product } => Ok(product.into_iter().map(Into::into).collect()),
+            Response::Error(e) => Err(e.into()),
         }
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use crate::Product;
+    pub async fn vacant_detail(&self, id: PropertyId) -> Result<PropertyDetail, Error> {
+        #[derive(Debug, Deserialize)]
+        #[serde(untagged)]
+        #[allow(clippy::large_enum_variant)]
+        enum Response {
+            Product(ProductDetail),
+            Error(ErrorResponse),
+        }
 
-    #[test]
-    fn parse_product() {
-        let json = include_bytes!("product.json");
-        let _: Product = serde_json::from_slice(json).unwrap();
+        match self
+            .get(format!(
+                "https://diremoapi.afbostader.se/redimo/rest/vacantproducts/{id}?lang=sv_SE"
+            ))
+            .send()
+            .await?
+            .json::<Response>()
+            .await?
+        {
+            Response::Product(product) => Ok(product.into()),
+            Response::Error(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn user_info(&self) -> Result<User, Error> {
+        #[derive(Debug, Deserialize)]
+        #[serde(untagged)]
+        #[allow(clippy::large_enum_variant)]
+        enum Response {
+            UserInfo(UserInfo),
+            Error(ErrorResponse),
+            Strange(Value),
+        }
+
+        if self.credentials.is_none() {
+            warn!("requesting user info without credentials");
+        }
+
+        match self
+            .get("https://diremoapi.afbostader.se/redimo/rest/registerForHousing/getUserInfo")
+            .send()
+            .await?
+            .json::<Response>()
+            .await?
+        {
+            Response::UserInfo(info) => Ok(info.into()),
+            Response::Error(e) => Err(e.into()),
+            Response::Strange(v) => {
+                if let Some(obj) = v.as_object() {
+                    if !obj.is_empty() && obj.values().all(Value::is_null) {
+                        return Err(Error::Unauthenticated);
+                    }
+                }
+
+                Err(Error::Unknown(format!(
+                    "unexpected json from server: {v:#?}"
+                )))
+            }
+        }
     }
 }

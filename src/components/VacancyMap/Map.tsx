@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/lib/af";
+import { Address, Property } from "@/lib/af";
 import { useVacancies } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 import L from "leaflet";
@@ -13,12 +13,19 @@ interface Place {
   lon: number;
 }
 
-function usePlace(street: string) {
+function usePlace(address: Address) {
   return useQuery<Place>({
-    queryKey: ["geo", { street }],
+    queryKey: [
+      "geo",
+      {
+        street: address.street,
+        postalcode: address.postal_code,
+        city: address.city,
+      },
+    ],
     queryFn: async () => {
       const data = await fetch(
-        `http://localhost:8000/geocode?street=${encodeURIComponent(street)}&city=Lund`,
+        `http://localhost:8000/geocode?street=${encodeURIComponent(address.street)}&postalcode=${address.postal_code}&city=${address.city}`,
         { cache: "force-cache" },
       ).then((res) => res.json());
       const place = data?.[0];
@@ -30,7 +37,7 @@ function usePlace(street: string) {
   });
 }
 
-function VacancyMarker({ product }: { product: Product }) {
+function VacancyMarker({ product }: { product: Property }) {
   const { data } = usePlace(product.address);
 
   if (!data) return null;
@@ -64,7 +71,7 @@ export default function Map() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png"
       />
-      {data?.map((p) => <VacancyMarker key={p.productId} product={p} />)}
+      {data?.map((p) => <VacancyMarker key={p.id} product={p} />)}
     </MapContainer>
   );
 }

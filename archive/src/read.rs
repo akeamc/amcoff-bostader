@@ -1,29 +1,11 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
+use client_af::{Property, PropertyType};
 use git2::Repository;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, DisplayFromStr};
 use tracing::error;
 
 use crate::git::for_each_file;
-
-#[serde_as]
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Interesting {
-    #[serde_as(as = "DisplayFromStr")]
-    product_id: u32,
-    #[serde_as(as = "DisplayFromStr")]
-    queue_number: u32,
-    #[serde(rename = "type")]
-    typ: String,
-    area: String,
-    description: String,
-    #[serde_as(as = "DisplayFromStr")]
-    sqr_mtrs: f32,
-    #[serde_as(as = "Option<DisplayFromStr>")]
-    reserved: Option<bool>,
-}
 
 #[derive(Debug, Serialize, PartialEq, PartialOrd, Eq, Ord)]
 #[serde(rename_all = "camelCase")]
@@ -39,9 +21,25 @@ pub struct Chart {
     series: Vec<Series>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 pub struct QueueHistoryQuery {
     max: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ArchiveEntry {
+    V010(client_af::Product),
+    V011(client_af::Property),
+}
+
+impl From<ArchiveEntry> for Property {
+    fn from(value: ArchiveEntry) -> Self {
+        match value {
+            ArchiveEntry::V010(product) => product.into(),
+            ArchiveEntry::V011(property) => property,
+        }
+    }
 }
 
 pub fn queue_history(repo: &Repository, query: &QueueHistoryQuery) -> Result<Chart, git2::Error> {
@@ -57,14 +55,14 @@ pub fn queue_history(repo: &Repository, query: &QueueHistoryQuery) -> Result<Cha
 
         let entry = data.entry((t, commit.id())).or_default();
 
-        match serde_json::from_slice::<Interesting>(content) {
+        match serde_json::from_slice::<ArchiveEntry>(content).map(Property::from) {
             Ok(data) => {
-                if data.typ != "Lägenhet" {
+                if data.property_type != PropertyType::Apartment {
                     return;
                 }
 
-                product_ids.insert(data.product_id);
-                entry.insert(data.product_id, data);
+                product_ids.insert(data.id);
+                entry.insert(data.id, data);
             }
             Err(e) => error!(
                 "failed to deserialize {path} (commit: {}): {e}",
@@ -76,9 +74,9 @@ pub fn queue_history(repo: &Repository, query: &QueueHistoryQuery) -> Result<Cha
     let mut i = 0;
     let len = data.len();
     data.retain(|&(t, _), _| {
-      i+=1;
+        i += 1;
 
-      t >= 1721253600 && (i % 10 == 0 || len - i < 100)
+        t >= 1721253600 && (i % 50 == 0 || len - i < 100)
     });
 
     let mut series = product_ids
@@ -89,26 +87,25 @@ pub fn queue_history(repo: &Repository, query: &QueueHistoryQuery) -> Result<Cha
                 .filter_map(|map| map.get(&product_id))
                 .next_back()?;
 
-              if query.max.is_some_and(|max| v.queue_number > max) {
+            if query.max.is_some_and(|max| v.queue_position.position > max) {
                 return None;
-              }
+            }
 
             let data = data
                 .values()
-                .map(|map| map.get(&product_id).map(|i| i.queue_number))
+                .map(|map| map.get(&product_id).map(|i| i.queue_position.position))
                 .collect();
 
-            let mut name = format!("{}; {} ({} kvm)", v.area, v.description, v.sqr_mtrs);
-            let reserved = v.reserved.unwrap_or_default();
+            let mut name = format!("{}; {} ({} kvm)", v.area, v.description, v.size_sqm);
 
-            if reserved {
+            if v.reserved {
                 name.push_str(" ✅");
             }
 
             Some(Series {
                 name,
                 data,
-                color: if reserved { "#f00" } else { "#eee" }.to_owned(),
+                color: if v.reserved { "#ff000080" } else { "#00000020" }.to_owned(),
             })
         })
         .collect::<Vec<_>>();

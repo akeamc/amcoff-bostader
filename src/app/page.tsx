@@ -5,10 +5,7 @@ import VacancyTable from "@/components/VacancyTable";
 
 export default async function Home() {
   return (
-    <main className="grid grid-cols-2 overflow-hidden h-screen">
-      <div className="row-span-1 col-span-2">
-        <Header />
-      </div>
+    <main className="grid grid-cols-2">
       <VacancyContextProvider>
         <div className="overflow-auto">
           <VacancyTable />

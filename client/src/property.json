@@ -1,0 +1,19 @@
+{
+  "id": 14045,
+  "description": "1 Rum och Kök med matplats Möbler ingår ej",
+  "address": {
+    "street": "Kämnärsvägen 24",
+    "city": "LUND",
+    "postal_code": "226 45"
+  },
+  "property_type": "Apartment",
+  "area": "Rhodos",
+  "queue_position": { "position": 1, "total_in_queue": 55 },
+  "reserved": false,
+  "floor": 4,
+  "size_sqm": 25.0,
+  "reserve_from": "2024-07-16",
+  "reserve_until": "2024-07-17",
+  "move_in": "2024-09-01",
+  "priority": "Novisch"
+}

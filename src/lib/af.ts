@@ -1,39 +1,32 @@
-function basicAuth(username: string, password: string) {
-  return "Basic " + btoa(`${username}:${password}`);
+export interface Address {
+  street: string;
+  city: string;
+  postal_code: string;
 }
 
-export interface Product {
-  productId: string;
-  type: string;
+export interface QueuePosition {
+  position: number;
+  total_in_queue: number;
+}
+
+export interface Property {
+  id: string;
+  property_type: string;
+  area: string;
   description: string;
   shortDescription: string;
-  area: string;
-  address: string;
-  floor: string;
-  sqrMtrs: string;
-  reserved: string;
-  numberOfReservations: string;
-  queueNumber: string;
+  address: Address;
+  floor: number;
+  size_sqm: number;
+  reserved: boolean;
+  queue_position: QueuePosition;
   rent: string;
 }
 
-export async function getVacant(): Promise<Product[]> {
-  const email = process.env.EMAIL;
-  const password = process.env.PASSWORD;
+export async function listVacant(): Promise<Property[]> {
+  const res = await fetch("http://localhost:8000/vacant").then((res) =>
+    res.json(),
+  );
 
-  if (!email) throw new Error("EMAIL not set");
-  if (!password) throw new Error("PASSWORD not set");
-
-  const res = await fetch(
-    "https://diremoapi.afbostader.se/redimo/rest/vacantproducts?lang=sv_SE&type=1",
-    {
-      headers: {
-        authorization: basicAuth(email, password),
-        // "user-agent":
-          // "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0",
-      },
-    },
-  ).then((res) => res.json());
-
-  return res.product;
+  return res;
 }

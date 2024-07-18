@@ -8,6 +8,8 @@ authors = ["Åke Amcoff <ake@amcoff.net>"]
 anyhow = "1.0.86"
 archive-af = { version = "0.1.0", path = "../archive", default-features = false }
 axum = "0.7.5"
+clap = { version = "4.5.9", features = ["derive", "env"] }
+client-af = { version = "0.1.0", path = "../client" }
 dotenvy = "0.15.7"
 git2 = "0.19.0"
 reqwest = { version = "0.12.5", features = ["json", "rustls-tls"] }

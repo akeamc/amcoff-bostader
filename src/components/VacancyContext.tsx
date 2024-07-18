@@ -9,14 +9,16 @@ export interface ContextData {
 
 export const VacancyContext = createContext<ContextData>({
   highlighted: null,
-  setHighlighted: () => { throw new Error("unimplemented") },
+  setHighlighted: () => {
+    throw new Error("unimplemented");
+  },
 });
 
-export function VacancyContextProvider({children}: PropsWithChildren<{}>) {
+export function VacancyContextProvider({ children }: PropsWithChildren<{}>) {
   const [highlighted, setHighlighted] = useState<string | null>(null);
-  
+
   return (
-    <VacancyContext.Provider value={{highlighted, setHighlighted}}>
+    <VacancyContext.Provider value={{ highlighted, setHighlighted }}>
       {children}
     </VacancyContext.Provider>
   );

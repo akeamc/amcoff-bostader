@@ -6,9 +6,9 @@ use std::{
 };
 
 use anyhow::Context;
-use archive_af::{git::{add_commit_push_if_changed, repo_root}, read::queue_history};
+use archive_af::git::{add_commit_push_if_changed, repo_root};
 use clap::Parser;
-use client_af::{Client, Product};
+use client_af::{Client, Credentials, Property};
 use dotenvy::dotenv;
 use git2::Repository;
 use tokio::time::{interval, MissedTickBehavior};
@@ -25,7 +25,6 @@ pub struct Args {
 #[derive(Debug, Parser)]
 pub enum Cmd {
     Collect(Collect),
-    Read(Read),
 }
 
 #[derive(Debug, Parser)]
@@ -38,10 +37,7 @@ pub struct Collect {
     interval_secs: u64,
 }
 
-#[derive(Debug, Parser)]
-pub struct Read {}
-
-fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
+fn overwrite(properties: &[Property], repo: &Repository) -> anyhow::Result<()> {
     let dir = repo_root(repo).join("vacant");
     create_dir_all(&dir)?;
 
@@ -53,21 +49,11 @@ fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
         .collect::<Result<HashSet<PathBuf>, _>>()
         .context("collect to_remove")?;
 
-    for product in products {
-        let filename = format!(
-            "{}-{}",
-            product
-                .get("productId")
-                .and_then(|v| v.as_str())
-                .ok_or(anyhow::anyhow!("missing productId"))?,
-            product
-                .get("area")
-                .and_then(|v| v.as_str())
-                .ok_or(anyhow::anyhow!("missing area"))?,
-        );
+    for property in properties {
+        let filename = format!("{}-{}", property.id, property.area,);
 
         let path = dir.join(filename).with_extension("json");
-        std::fs::write(&path, serde_json::to_string_pretty(product)?)?;
+        std::fs::write(&path, serde_json::to_string_pretty(property)?)?;
 
         to_remove.remove(&path.canonicalize()?);
     }
@@ -81,14 +67,14 @@ fn overwrite(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn write_and_commit_products(products: &[Product], repo: &Repository) -> anyhow::Result<()> {
-    overwrite(products, repo)?;
+fn write_and_commit_properties(properties: &[Property], repo: &Repository) -> anyhow::Result<()> {
+    overwrite(properties, repo)?;
     add_commit_push_if_changed(repo)?;
     Ok(())
 }
 
 async fn collect(repo: &Repository, args: Collect) {
-    let client = Client::new(args.email, args.password);
+    let client = Client::new().with_credentials(Credentials::new(args.email, args.password));
     let mut interval = interval(Duration::from_secs(args.interval_secs));
     interval.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
@@ -96,7 +82,7 @@ async fn collect(repo: &Repository, args: Collect) {
         interval.tick().await;
         match client.list_vacant().await {
             Ok(vacant) => {
-                if let Err(e) = write_and_commit_products(&vacant, &repo) {
+                if let Err(e) = write_and_commit_properties(&vacant, repo) {
                     error!("failed to write and commit: {e:?}");
                 }
             }
@@ -105,11 +91,6 @@ async fn collect(repo: &Repository, args: Collect) {
             }
         };
     }
-}
-
-fn read(repo: &Repository, args: Read) -> anyhow::Result<()> {
-    queue_history(repo)?;
-    Ok(())
 }
 
 #[tokio::main]
@@ -122,7 +103,6 @@ async fn main() -> anyhow::Result<()> {
 
     match command {
         Cmd::Collect(args) => collect(&repo, args).await,
-        Cmd::Read(args) => read(&repo, args)?,
     }
 
     Ok(())

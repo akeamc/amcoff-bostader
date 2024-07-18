@@ -1,5 +1,5 @@
-import { getVacant } from "@/lib/af";
+import { listVacant } from "@/lib/af";
 
 export async function GET() {
-  return Response.json(await getVacant());
+  return Response.json(await listVacant());
 }

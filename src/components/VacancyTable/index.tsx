@@ -1,6 +1,6 @@
 "use client";
 
-import { Product } from "@/lib/af";
+import { Property } from "@/lib/af";
 import { useVacancies } from "@/lib/hooks";
 import {
   Column,
@@ -14,6 +14,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
+import VacancyRow from "./VacancyRow";
 
 const CSN = 13_156;
 
@@ -23,17 +24,17 @@ declare module "@tanstack/react-table" {
     filterVariant?: "text" | "range" | "select";
   }
 }
-const columnHelper = createColumnHelper<Product>();
+const columnHelper = createColumnHelper<Property>();
 
 const columns = [
-  columnHelper.accessor("queueNumber", {
+  columnHelper.accessor("queue_position.position", {
     header: "plats",
   }),
-  columnHelper.accessor("numberOfReservations", {
+  columnHelper.accessor("queue_position.total_in_queue", {
     header: "tot.",
   }),
   columnHelper.accessor("reserved", {
-    cell: info => info.getValue() === "true" ? "y" : "",
+    cell: (info) => (info.getValue() ? "y" : ""),
   }),
   columnHelper.accessor("rent", {
     cell: (info) => {
@@ -54,15 +55,15 @@ const columns = [
   columnHelper.accessor("area", { meta: { filterVariant: "text" } }),
   columnHelper.accessor("floor", {}),
   columnHelper.accessor("description", {}),
-  columnHelper.accessor("sqrMtrs", {
+  columnHelper.accessor("size_sqm", {
     cell: (info) =>
-      parseFloat(info.getValue()).toLocaleString("sv", {
+      info.getValue().toLocaleString("sv", {
         maximumFractionDigits: 1,
         minimumFractionDigits: 1,
       }),
   }),
-  columnHelper.accessor("address", {}),
-  columnHelper.accessor("type", {
+  columnHelper.accessor("address.street", {}),
+  columnHelper.accessor("property_type", {
     meta: {
       filterVariant: "select",
     },
@@ -74,7 +75,7 @@ export default function VacancyTable() {
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "queueNumber",
+      id: "queue_position.position",
       desc: false,
     },
   ]);
@@ -93,7 +94,14 @@ export default function VacancyTable() {
 
   return (
     <div className="p-2">
-      <p>{new Date(dataUpdatedAt).toLocaleString("sv", {hour: "2-digit", minute: "2-digit", second: "2-digit"})} {isFetching ? "..." : null}</p>
+      <p>
+        {new Date(dataUpdatedAt).toLocaleString("sv", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })}{" "}
+        {isFetching ? "..." : null}
+      </p>
       <div className="h-2" />
       <table>
         <thead>
@@ -145,23 +153,7 @@ export default function VacancyTable() {
         </thead>
         <tbody>
           {table.getRowModel().rows.map((row) => {
-            return (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <td
-                      key={cell.id}
-                      className="px-2 border border-neutral-300"
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
+            return <VacancyRow key={row.id} row={row} />;
           })}
         </tbody>
       </table>
@@ -170,7 +162,7 @@ export default function VacancyTable() {
   );
 }
 
-function Filter({ column }: { column: Column<Product, unknown> }) {
+function Filter({ column }: { column: Column<Property, unknown> }) {
   const columnFilterValue = column.getFilterValue();
   const { filterVariant } = column.columnDef.meta || {};
 
@@ -185,7 +177,7 @@ function Filter({ column }: { column: Column<Product, unknown> }) {
             column.setFilterValue((old: [number, number]) => [value, old?.[1]])
           }
           placeholder={`Min`}
-          className="w-24 border shadow rounded"
+          className="w-24 rounded border shadow"
         />
         <DebouncedInput
           type="number"
@@ -194,7 +186,7 @@ function Filter({ column }: { column: Column<Product, unknown> }) {
             column.setFilterValue((old: [number, number]) => [old?.[0], value])
           }
           placeholder={`Max`}
-          className="w-24 border shadow rounded"
+          className="w-24 rounded border shadow"
         />
       </div>
       <div className="h-1" />
@@ -206,19 +198,19 @@ function Filter({ column }: { column: Column<Product, unknown> }) {
     >
       {/* See faceted column filters example for dynamic select options */}
       <option value="">All</option>
-      <option value="Lägenhet">Lägenhet</option>
-      <option value="Korridorrum">Korridorrum</option>
+      <option value="Apartment">Apartment</option>
+      <option value="CorridorRoom">CorridorRoom</option>
     </select>
   ) : filterVariant === "text" ? (
     <DebouncedInput
-      className="w-36 border shadow rounded"
+      className="w-36 rounded border shadow"
       onChange={(value) => column.setFilterValue(value)}
       placeholder={`Search...`}
       type="text"
       value={(columnFilterValue ?? "") as string}
     />
   ) : // See faceted column filters example for datalist search suggestions
-    null;
+  null;
 }
 
 // A typical debounced input react component

@@ -1,0 +1,328 @@
+{
+  "productId": "5238",
+  "type": "Korridorrum",
+  "status": "Uppsagd till 2024-07-31",
+  "description": "Korridorrum och Delat kök i korridor Möbler ingår ej",
+  "shortDescription": "Korridorrum",
+  "descriptionText": "",
+  "area": "Delphi",
+  "objectnumber": "5018-01:1206",
+  "lghbeteckning": "X1206",
+  "storenumber": "",
+  "storeIncluded": "Förråd ingår ej",
+  "storeaddress": "",
+  "storeSize": "",
+  "lghnummer": "1206",
+  "address": "Magistratsvägen 55 X 1206",
+  "addressgroup": "Magistratsvägen 55 X",
+  "houseCaretaker": {
+    "workerId": "384900",
+    "loginId": "david.rosen@afbostader.se",
+    "name": "David Rosén",
+    "phone": "0709-35 81 73",
+    "workphone": "046-19 14 76",
+    "email": "david.rosen@afbostader.se"
+  },
+  "projectphases": [],
+  "projects": [],
+  "streetnumber": "55 X",
+  "zipcode": "22644 ",
+  "city": "LUND",
+  "building": null,
+  "entrance": null,
+  "corridor": null,
+  "property": "Magistraten 1",
+  "floor": "3",
+  "sqrMtrs": "19.8",
+  "sqrMtrsTotal": "26.5",
+  "periodsOfNotice": "1 månads uppsägningstid",
+  "rentalPeriods": "9",
+  "shower": "Egen dusch",
+  "furniture": "Möbler ingår ej",
+  "balkony": "Finns ej i korridor",
+  "citchen": "Delat kök i korridor",
+  "elevator": "Hiss finns ej",
+  "heating": "Värme/Vatten ingår",
+  "electricity": "El ingår korridorrum",
+  "internet": "Tillgång finns",
+  "location": "Öster",
+  "naturalLight": "",
+  "roomsInCorridor": "11 rum i korridor",
+  "reserved": "false",
+  "numberOfReservations": "82",
+  "queueNumber": "2",
+  "moveInDate": "2024-08-01",
+  "reserveFromDate": "2024-07-18",
+  "reserveUntilDate": "2024-07-18",
+  "publish": true,
+  "priority": "Novisch",
+  "blueprint": "/ritningimg/305.gif",
+  "blueprintformat": "image",
+  "tvoutlet": "",
+  "rent": "4447",
+  "rentalrestriction": "",
+  "paymentperiod": "9 månadershyra",
+  "fromdate": "",
+  "todate": "",
+  "buildingspace": [],
+  "descriptions": [
+    {
+      "group": "Max boendetid",
+      "alternative": "6 år",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Kök",
+      "alternative": "Delat kök i korridor",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Dusch",
+      "alternative": "Egen dusch",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Möbler",
+      "alternative": "Möbler ingår ej",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "El",
+      "alternative": "El ingår korridorrum",
+      "infolink": null,
+      "infolinken": null,
+      "points": "2.8977"
+    },
+    {
+      "group": "Nätverksuppkoppling",
+      "alternative": "Tillgång finns",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Personligt cykelställ",
+      "alternative": "Eget cykelställ ingår",
+      "infolink": null,
+      "infolinken": null,
+      "points": "1.0000"
+    },
+    {
+      "group": "Portlås",
+      "alternative": "Portlås finns",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Läge",
+      "alternative": "Öster",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Antal rum i korridor",
+      "alternative": "11 rum i korridor",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Antal duschar i korridor",
+      "alternative": "Saknas se dusch",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Förråd",
+      "alternative": "Förråd ingår ej",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Hiss",
+      "alternative": "Hiss finns ej",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Möbler i kök",
+      "alternative": "Köksmöbler & sittgrupp finns",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Värme/Vatten",
+      "alternative": "Värme/Vatten ingår",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Balkong/Uteplats",
+      "alternative": "Finns ej i korridor",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Balkong/uteplats läge",
+      "alternative": "Balkong/uteplats saknas",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Microvågsugn",
+      "alternative": "Finns ej",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0"
+    },
+    {
+      "group": "Närhet till centrum",
+      "alternative": "B",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0.0000"
+    },
+    {
+      "group": "Närhet till instutition",
+      "alternative": "A",
+      "infolink": null,
+      "infolinken": null,
+      "points": "8.0000"
+    },
+    {
+      "group": "Våning för poängberäkning",
+      "alternative": "12",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0.0000"
+    },
+    {
+      "group": "Utomhusmiljö",
+      "alternative": "Finns",
+      "infolink": null,
+      "infolinken": null,
+      "points": "0.0000"
+    }
+  ],
+  "commonspaces": [
+    {
+      "description": "Avfallsstation",
+      "address": "Magistratsvägen 55 P ",
+      "floor": " "
+    },
+    {
+      "description": "Grovavfallsstation",
+      "address": "Magistratsvägen 57 1001",
+      "floor": " "
+    },
+    {
+      "description": "Korridor",
+      "address": "Magistratsvägen 55 X ",
+      "floor": " "
+    },
+    {
+      "description": "Korridorkök",
+      "address": "Magistratsvägen 55 X ",
+      "floor": " "
+    },
+    {
+      "description": "Mangelrum",
+      "address": "Magistratsvägen 55 K ",
+      "floor": " "
+    },
+    {
+      "description": "Mangelrum",
+      "address": "Magistratsvägen 55 Y ",
+      "floor": " "
+    },
+    {
+      "description": "Städrum",
+      "address": "Magistratsvägen 55 X ",
+      "floor": " "
+    },
+    {
+      "description": "Trapphus",
+      "address": "Magistratsvägen 55 X ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 B ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 B ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 K ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 K ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 K ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 P ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 P ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 P ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 P ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 Y ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 Y ",
+      "floor": " "
+    },
+    {
+      "description": "Tvättstuga",
+      "address": "Magistratsvägen 55 Y ",
+      "floor": " "
+    }
+  ],
+  "keydescription": "",
+  "currentContractStatusType": "TERMINATED"
+}

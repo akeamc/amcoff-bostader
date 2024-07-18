@@ -1,6 +1,6 @@
 use std::{
     collections::HashSet,
-    path::{Path, PathBuf},
+    path::Path,
     process::{Command, Output},
     time::{SystemTime, UNIX_EPOCH},
 };
@@ -85,10 +85,10 @@ pub fn add_commit_push_if_changed(repo: &Repository) -> Result<(), git2::Error> 
 }
 
 pub fn push(repo: &Repository) -> std::io::Result<Output> {
-  Command::new("git")
-      .arg("push")
-      .current_dir(repo_root(repo))
-      .output()
+    Command::new("git")
+        .arg("push")
+        .current_dir(repo_root(repo))
+        .output()
 }
 
 pub fn pull(repo: &Repository) -> std::io::Result<Output> {
@@ -100,7 +100,7 @@ pub fn pull(repo: &Repository) -> std::io::Result<Output> {
 
 pub fn for_each_file(
     repo: &Repository,
-    mut entry_cb: impl FnMut(&Commit, String, &[u8]) -> (),
+    mut entry_cb: impl FnMut(&Commit, String, &[u8]),
 ) -> Result<(), git2::Error> {
     // Set to track processed commits
     let mut processed_commits = HashSet::new();
@@ -124,7 +124,7 @@ pub fn for_each_file(
         // Read each file in the current commit
         tree.walk(TreeWalkMode::PreOrder, |root, entry| {
             if let Some(blob) = entry
-                .to_object(&repo)
+                .to_object(repo)
                 .ok()
                 .and_then(|obj| obj.into_blob().ok())
             {

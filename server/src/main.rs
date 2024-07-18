@@ -3,13 +3,15 @@ use std::{sync::Arc, time::Duration};
 use archive_af::read::QueueHistoryQuery;
 use axum::{
     error_handling::HandleErrorLayer,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     response::{IntoResponse, Response},
     routing::get,
     Json, Router,
 };
+use clap::Parser;
+use client_af::{Credentials, PropertyId};
 use git2::Repository;
-use reqwest::{Client, StatusCode};
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use tokio::{net::TcpListener, sync::Mutex};
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, BoxError, ServiceBuilder};
@@ -21,6 +23,8 @@ struct GeocodeQuery {
     street: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     city: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    postalcode: Option<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -48,6 +52,17 @@ async fn geocode(
         .send()
         .await?;
     Ok(([("content-type", "application/json")], res.text().await?))
+}
+
+async fn list_vacant(State(state): State<AppState>) -> impl IntoResponse {
+    Json(state.af.list_vacant().await.unwrap())
+}
+
+async fn get_vacant(
+    State(state): State<AppState>,
+    Path(id): Path<PropertyId>,
+) -> impl IntoResponse {
+    Json(state.af.vacant_detail(id).await.unwrap())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -78,15 +93,31 @@ async fn get_archive_data(
 
 #[derive(Clone)]
 struct AppState {
-    client: Client,
+    af: client_af::Client,
+    client: reqwest::Client,
     repo: Arc<Mutex<Repository>>,
+}
+
+#[derive(Debug, Parser)]
+struct Args {
+    #[clap(long, env)]
+    email: String,
+    #[clap(long, env)]
+    password: String,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
     tracing_subscriber::fmt::init();
+
+    let Args { email, password } = Args::parse();
+
+    let af = client_af::Client::new().with_credentials(Credentials::new(email, password));
+
     let app = Router::new()
+        .route("/vacant", get(list_vacant))
+        .route("/vacant/:id", get(get_vacant))
         .route(
             "/geocode",
             get(geocode).route_layer(
@@ -104,10 +135,11 @@ async fn main() -> anyhow::Result<()> {
         .route("/archive", get(get_archive_data))
         .layer(CorsLayer::permissive())
         .with_state(AppState {
-            client: Client::builder()
+            client: reqwest::Client::builder()
                 .user_agent("afbostader-api")
                 .build()
                 .unwrap(),
+            af,
             repo: Arc::new(Mutex::new(Repository::open("af-data")?)),
         });
     let listener = TcpListener::bind("[::]:8000").await.unwrap();
