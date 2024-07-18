@@ -43,8 +43,6 @@ async fn geocode(
     State(state): State<AppState>,
     Query(query): Query<GeocodeQuery>,
 ) -> Result<impl IntoResponse, GeocodeError> {
-    println!("handling {query:?}");
-
     let res = state
         .client
         .get("https://nominatim.openstreetmap.org/search.php?format=jsonv2")
@@ -54,15 +52,22 @@ async fn geocode(
     Ok(([("content-type", "application/json")], res.text().await?))
 }
 
-async fn list_vacant(State(state): State<AppState>) -> impl IntoResponse {
-    Json(state.af.list_vacant().await.unwrap())
+async fn list_vacancies(State(state): State<AppState>) -> impl IntoResponse {
+    Json(state.af.list_vacancies().await.unwrap())
 }
 
-async fn get_vacant(
+async fn get_vacancy_detail(
     State(state): State<AppState>,
     Path(id): Path<PropertyId>,
 ) -> impl IntoResponse {
-    Json(state.af.vacant_detail(id).await.unwrap())
+    Json(state.af.vacancy_detail(id).await.unwrap())
+}
+
+async fn get_area_detail(
+    State(state): State<AppState>,
+    Path(name): Path<String>,
+) -> impl IntoResponse {
+    Json(state.af.area_detail(&name).await.unwrap())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -116,8 +121,9 @@ async fn main() -> anyhow::Result<()> {
     let af = client_af::Client::new().with_credentials(Credentials::new(email, password));
 
     let app = Router::new()
-        .route("/vacant", get(list_vacant))
-        .route("/vacant/:id", get(get_vacant))
+        .route("/vacancies", get(list_vacancies))
+        .route("/vacancies/:id", get(get_vacancy_detail))
+        .route("/areas/:name", get(get_area_detail))
         .route(
             "/geocode",
             get(geocode).route_layer(
@@ -129,6 +135,8 @@ async fn main() -> anyhow::Result<()> {
                         )
                     }))
                     .layer(BufferLayer::new(1024))
+                    // The "absolute maximum" according to the Nominatim Usage Policy
+                    // is 1 request per second
                     .layer(RateLimitLayer::new(1, Duration::from_secs(1))),
             ),
         )

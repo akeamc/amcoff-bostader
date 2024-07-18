@@ -38,7 +38,7 @@ const columns = [
   }),
   columnHelper.accessor("rent", {
     cell: (info) => {
-      const rent = parseFloat(info.getValue());
+      const rent = info.getValue();
 
       return (
         <>
@@ -199,7 +199,7 @@ function Filter({ column }: { column: Column<Property, unknown> }) {
       {/* See faceted column filters example for dynamic select options */}
       <option value="">All</option>
       <option value="Apartment">Apartment</option>
-      <option value="CorridorRoom">CorridorRoom</option>
+      <option value="Dorm">Dorm</option>
     </select>
   ) : filterVariant === "text" ? (
     <DebouncedInput

@@ -1,9 +1,11 @@
+use std::ops::Not;
+
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use time::Date;
 
 use crate::{
-    model::yyyy_mm_dd, Address, Priority, Property, PropertyDetail, QueuePosition, Worker,
+    model::yyyy_mm_dd, Address, Priority, Property, PropertyDetail, QueuePosition, Store, Worker,
 };
 
 #[serde_as]
@@ -130,10 +132,15 @@ impl From<ProductDetail> for PropertyDetail {
     fn from(p: ProductDetail) -> Self {
         Self {
             property: p.product.into(),
-            status: p.status.parse().unwrap(),
-            store: None,
+            status: p.status,
+            store: Store {
+                included: p.store_included,
+                address: p.store_address.is_empty().not().then_some(p.store_address),
+                size: p.store_size.is_empty().not().then_some(p.store_size),
+                number: p.store_number.parse().ok(),
+            },
             caretaker: p.house_caretaker.into(),
-            shower: p.shower.parse().unwrap(),
+            shower: p.shower,
             furniture: p.furniture,
             balcony: p.balcony,
             kitchen: p.kitchen,

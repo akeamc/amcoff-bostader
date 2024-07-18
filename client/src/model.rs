@@ -1,9 +1,11 @@
 time::serde::format_description!(yyyy_mm_dd, Date, "[year]-[month]-[day]");
 
+mod area;
 mod product;
 mod property;
 mod user;
 
+pub use area::*;
 pub use product::*;
 pub use property::*;
 pub use user::*;

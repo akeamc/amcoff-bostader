@@ -1,17 +1,12 @@
-import Header from "@/components/Header";
-import { VacancyContextProvider } from "@/components/VacancyContext";
-import VacancyMap from "@/components/VacancyMap";
-import VacancyTable from "@/components/VacancyTable";
+import VacancyGrid from "@/components/VacancyGrid";
+import { listVacancies } from "@/lib/af";
 
 export default async function Home() {
+  const vacancies = listVacancies();
+
   return (
-    <main className="grid grid-cols-2">
-      <VacancyContextProvider>
-        <div className="overflow-auto">
-          <VacancyTable />
-        </div>
-        <VacancyMap />
-      </VacancyContextProvider>
+    <main className="mx-auto w-full max-w-screen-xl px-4">
+      <VacancyGrid />
     </main>
   );
 }

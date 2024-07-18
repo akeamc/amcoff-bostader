@@ -80,7 +80,7 @@ async fn collect(repo: &Repository, args: Collect) {
 
     loop {
         interval.tick().await;
-        match client.list_vacant().await {
+        match client.list_vacancies().await {
             Ok(vacant) => {
                 if let Err(e) = write_and_commit_properties(&vacant, repo) {
                     error!("failed to write and commit: {e:?}");

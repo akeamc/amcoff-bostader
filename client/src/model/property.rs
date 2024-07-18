@@ -10,7 +10,7 @@ pub type PropertyId = u32;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum PropertyType {
     Apartment,
-    CorridorRoom,
+    Dorm,
     Other(String),
 }
 
@@ -20,7 +20,7 @@ impl FromStr for PropertyType {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "Lägenhet" => Self::Apartment,
-            "Korridorrum" => Self::CorridorRoom,
+            "Korridorrum" => Self::Dorm,
             s => Self::Other(s.to_owned()),
         })
     }
@@ -69,27 +69,11 @@ pub struct QueuePosition {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum PropertyStatus {
-    Canceled(Date),
-    #[serde(untagged)]
-    Other(String),
-}
-
-impl FromStr for PropertyStatus {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            s => Self::Other(s.to_owned()),
-        })
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Store {
-    pub included: bool,
-    pub address: String,
-    pub size: String,
+    pub included: String,
+    pub address: Option<String>,
+    pub size: Option<String>,
+    pub number: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -102,30 +86,13 @@ pub struct Worker {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum Shower {
-    Own,
-    Shared,
-}
-
-impl FromStr for Shower {
-    type Err = Infallible;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "Egen dusch" => Self::Own,
-            _ => unimplemented!(),
-        })
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PropertyDetail {
     #[serde(flatten)]
     pub property: Property,
-    pub status: PropertyStatus,
-    pub store: Option<Store>,
+    pub status: String,
+    pub store: Store,
     pub caretaker: Worker,
-    pub shower: Shower,
+    pub shower: String,
     pub furniture: String,
     pub balcony: String,
     pub kitchen: String,

@@ -1,13 +1,35 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { Property } from "./af";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getArea, getVacancy, listVacancies, Property } from "./af";
 
 export function useVacancies() {
   return useQuery<Property[]>({
     queryKey: ["vacancies"],
-    queryFn: () =>
-      fetch("/api/vacancies", { cache: "no-store" }).then((res) => res.json()),
-    refetchInterval: 10000,
+    queryFn: listVacancies,
+    refetchInterval: 30_000,
+  });
+}
+
+export function useVacancy(id: number) {
+  const queryClient = useQueryClient();
+
+  return useQuery<Property>({
+    queryKey: ["vacancies", id],
+    queryFn: () => getVacancy(id),
+    refetchInterval: 30_000,
+    initialData: () => {
+      // Use a todo from the 'todos' query as the initial data for this todo query
+      return queryClient
+        .getQueryData<Property[]>(["vacancies"])
+        ?.find((p) => p.id === id);
+    },
+  });
+}
+
+export function useArea(name: string) {
+  return useQuery({
+    queryKey: ["areas", name],
+    queryFn: () => getArea(name),
   });
 }

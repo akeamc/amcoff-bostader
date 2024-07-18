@@ -23,7 +23,7 @@ export default function RootLayout({
         lang="en"
         className={classNames(inter.variable, newsreader.variable)}
       >
-        <body className="min-h-screen flex flex-col">
+        <body className="flex min-h-screen flex-col">
           <Header />
           {children}
           <Footer />

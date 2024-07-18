@@ -14,7 +14,7 @@ interface Data {
 }
 
 export default function QueueChart() {
-  const max = 10;
+  const max = 5;
 
   const { data } = useQuery<Data>({
     queryKey: ["archive", { max }],

@@ -1,8 +1,12 @@
 use error::{Error, ErrorResponse};
-use reqwest::IntoUrl;
+use reqwest::{IntoUrl, Url};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::{ExposeSecret, SecretString};
+use select::{
+    document::Document,
+    predicate::{Class, Name, Predicate},
+};
 use serde::Deserialize;
 
 pub const USER_AGENT: &str = concat!(
@@ -84,7 +88,7 @@ impl Client {
         }
     }
 
-    pub async fn list_vacant(&self) -> Result<Vec<Property>, Error> {
+    pub async fn list_vacancies(&self) -> Result<Vec<Property>, Error> {
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
         enum Response {
@@ -104,7 +108,7 @@ impl Client {
         }
     }
 
-    pub async fn vacant_detail(&self, id: PropertyId) -> Result<PropertyDetail, Error> {
+    pub async fn vacancy_detail(&self, id: PropertyId) -> Result<PropertyDetail, Error> {
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
         #[allow(clippy::large_enum_variant)]
@@ -125,6 +129,46 @@ impl Client {
             Response::Product(product) => Ok(product.into()),
             Response::Error(e) => Err(e.into()),
         }
+    }
+
+    pub async fn area_detail(&self, area_name: &str) -> Result<AreaDetail, Error> {
+        let base = Url::parse("https://www.afbostader.se").unwrap();
+
+        let html = self
+            .inner
+            .get(
+                base.join("/lediga-bostader/bostadsomraden/")
+                    .unwrap()
+                    .join(&slug::slugify(area_name))
+                    .unwrap(),
+            )
+            .send()
+            .await?
+            .text()
+            .await?;
+        let doc = Document::from(html.as_str());
+
+        let pictures = doc
+            .find(
+                Class("slideshow")
+                    .descendant(Class("slides"))
+                    .descendant(Name("img")),
+            )
+            .filter_map(|node| {
+                let alt = node
+                    .attr("alt")
+                    .map(|s| s.trim_matches('\"'))
+                    .filter(|s| !s.is_empty())
+                    .map(ToOwned::to_owned);
+
+                Some(Picture {
+                    alt,
+                    url: base.join(node.attr("src")?).ok()?,
+                })
+            })
+            .collect();
+
+        Ok(AreaDetail { pictures })
     }
 
     pub async fn user_info(&self) -> Result<User, Error> {
