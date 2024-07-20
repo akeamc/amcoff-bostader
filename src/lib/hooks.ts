@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getArea, getVacancy, listVacancies, Property } from "./af";
+import { useMemo } from "react";
 
 export function useVacancies() {
   return useQuery<Property[]>({
@@ -25,6 +26,18 @@ export function useVacancy(id: number) {
         ?.find((p) => p.id === id);
     },
   });
+}
+
+export function useAreaNames() {
+  const { data: vacancies } = useVacancies();
+
+  return useMemo(() => {
+    if (!vacancies) return undefined;
+
+    return Array.from(new Set(vacancies.map((v) => v.area))).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  }, [vacancies]);
 }
 
 export function useArea(name: string) {

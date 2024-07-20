@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Temporal } from "@js-temporal/polyfill";
 import classNames from "classnames";
 import Image from "next/image";
+import { Key } from "react-feather";
 
 function QueueInfo(props: { position?: QueuePosition; className?: string }) {
   const { position, total_in_queue } = props.position || {};
@@ -15,7 +16,7 @@ function QueueInfo(props: { position?: QueuePosition; className?: string }) {
     <div
       className={classNames(
         "inline-block rounded-[999px] bg-white px-2 py-1 text-sm text-black shadow-md",
-        { "bg-gradient-to-t from-yellow-500 to-yellow-400": position === 1 },
+        { "bg-gradient-to-tr from-yellow-500 to-yellow-400": position === 1 },
         props.className,
       )}
       title="Köplats"
@@ -59,7 +60,8 @@ function ReserveableSpan(props: { from?: string; until?: string }) {
     sameYear && from.year === Temporal.Now.zonedDateTimeISO().year;
 
   return (
-    <>
+    <span className={classNames({ "font-medium text-red-500": urgent })}>
+      Anmälan{" "}
       <time>
         {from.toLocaleString("sv", {
           year: sameYear ? undefined : "numeric",
@@ -68,14 +70,35 @@ function ReserveableSpan(props: { from?: string; until?: string }) {
         })}
       </time>
       {sameYearAndMonth ? "–" : " – "}
-      <time className={classNames({ "font-medium text-red-500": urgent })}>
+      <time>
         {until.toLocaleString("sv", {
           year: currentYear ? undefined : "numeric",
           month: "short",
           day: "numeric",
         })}
       </time>
-    </>
+    </span>
+  );
+}
+
+function AccessDate(props: { date?: string }) {
+  const [currentYear, setCurrentYear] = useState<number>();
+
+  useEffect(() => {
+    setCurrentYear(Temporal.Now.zonedDateTimeISO().year);
+  }, []);
+
+  const date = Temporal.PlainDate.from(props.date || "");
+
+  return (
+    <span>
+      Tillträde{" "}
+      {date.toLocaleString("sv", {
+        year: currentYear === date.year ? undefined : "numeric",
+        month: "short",
+        day: "numeric",
+      })}
+    </span>
   );
 }
 
@@ -107,7 +130,7 @@ export default function VacancyCell(props: { property: Property }) {
           {property?.area}
         </h3>
         <div>
-          {property?.short_description} ⋅{" "}
+          {property?.short_description.toLocaleLowerCase()} ⋅{" "}
           {property?.size_sqm.toLocaleString("sv", {
             minimumFractionDigits: 1,
             maximumFractionDigits: 1,
@@ -115,11 +138,12 @@ export default function VacancyCell(props: { property: Property }) {
           m<sup>2</sup> ⋅ vån {property?.floor}
         </div>
         <div>
-          Anmälan{" "}
           <ReserveableSpan
             from={property?.reserve_from}
             until={property?.reserve_until}
           />
+          {" ⋅ "}
+          <AccessDate date={property?.move_in} />
         </div>
         <div className="font-medium text-black">
           {property?.rent.toLocaleString("sv")}&nbsp;kr/mån

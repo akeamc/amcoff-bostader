@@ -8,9 +8,11 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use axum_extra::TypedHeader;
 use clap::Parser;
 use client_af::{Credentials, PropertyId};
 use git2::Repository;
+use headers::CacheControl;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use tokio::{net::TcpListener, sync::Mutex};
@@ -67,7 +69,15 @@ async fn get_area_detail(
     State(state): State<AppState>,
     Path(name): Path<String>,
 ) -> impl IntoResponse {
-    Json(state.af.area_detail(&name).await.unwrap())
+    let detail = state.af.area_detail(&name).await.unwrap();
+    (
+        TypedHeader(
+            CacheControl::new()
+                .with_public()
+                .with_max_age(Duration::from_secs(3600)),
+        ),
+        Json(detail),
+    )
 }
 
 #[derive(Debug, thiserror::Error)]

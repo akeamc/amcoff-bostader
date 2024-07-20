@@ -25,6 +25,7 @@ export interface Property {
   rent: number;
   reserve_from: string;
   reserve_until: string;
+  move_in: string;
 }
 
 export interface PropertyDetail extends Property {}
