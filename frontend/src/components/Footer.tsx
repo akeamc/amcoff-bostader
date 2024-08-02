@@ -59,9 +59,9 @@ export default function Footer() {
           <p className="col-span-full text-center text-xs">
             <Link
               className="hover:text-white hover:underline"
-              href="https://github.com/akeamc/afbostader"
+              href="https://github.com/akeamc/amcoff-bostader"
             >
-              GitHub: akeamc/afbostader
+              GitHub: akeamc/amcoff-bostader
             </Link>
           </p>
         </div>

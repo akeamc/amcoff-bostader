@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use error::ErrorResponse;
 use reqwest::{IntoUrl, Url};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
@@ -9,7 +7,7 @@ use select::{
     document::Document,
     predicate::{Class, Name, Predicate},
 };
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 pub const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -28,10 +26,11 @@ pub use model::*;
 use serde_json::Value;
 use tracing::warn;
 
+/// User credentials.
 #[derive(Debug, Clone)]
 pub struct Credentials {
-    email: String,
-    password: SecretString,
+    pub email: String,
+    pub password: SecretString,
 }
 
 impl Credentials {
@@ -59,6 +58,9 @@ impl Client {
     pub fn new() -> Self {
         let client = reqwest::Client::builder()
             .user_agent(USER_AGENT)
+            // Until AF Bostäder fixes their TLS config (or we decide to
+            // try a bit harder to verify their semi-complete certificate
+            // chain), we are forced to skip TLS verification.
             .danger_accept_invalid_certs(true)
             .build()
             .unwrap();
@@ -95,6 +97,9 @@ impl Client {
         }
     }
 
+    /// List vacant properties. This function uses the same endpoint as
+    /// the frontend at
+    /// [afbostader.se/lediga-bostader](https://www.afbostader.se/lediga-bostader/).
     pub async fn list_vacancies(&self) -> Result<Vec<Property>, Error> {
         #[derive(Debug, Deserialize)]
         #[serde(untagged)]
@@ -112,12 +117,14 @@ impl Client {
         {
             Response::Product { product } => Ok(product
                 .into_iter()
-                .map(Into::into)
-                .map(|mut p: Property| {
+                .map(|product| {
+                    let mut property: Property = product.into();
                     if !self.has_credentials() {
-                        p.queue_position.position = None;
+                        // there is no point in keeping the unpredictable queue
+                        // position that is reported for unauthenticated calls
+                        property.queue_position.position = None;
                     }
-                    p
+                    property
                 })
                 .collect()),
             Response::Error(e) => Err(e.into()),
@@ -190,10 +197,6 @@ impl Client {
             })
             .collect();
 
-        let description = doc
-            .find(Class("product-area-info-content").descendant(Class("two-columnpage-content")))
-            .next();
-
         Ok(AreaDetail { pictures })
     }
 
@@ -221,6 +224,8 @@ impl Client {
             Response::UserInfo(info) => Ok(info.into()),
             Response::Error(e) => Err(e.into()),
             Response::Strange(v) => {
+                // the api returns a UserInfo object with all values set to
+                // null if nobody is logged in
                 if let Some(obj) = v.as_object() {
                     if !obj.is_empty() && obj.values().all(Value::is_null) {
                         return Err(Error::Unauthenticated);

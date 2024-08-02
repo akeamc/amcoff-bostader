@@ -33,7 +33,6 @@ export default async function Header() {
         <div className="flex flex-1 justify-center">
           <nav className="flex items-center rounded-full border px-3 shadow-sm">
             <AvailableLink />
-            <NavLink href="/history">History</NavLink>
           </nav>
         </div>
         <div className="flex flex-1 justify-center">
