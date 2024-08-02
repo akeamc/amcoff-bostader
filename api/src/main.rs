@@ -1,7 +1,10 @@
 use std::{io::Cursor, time::Duration};
 
 use afbostader::PropertyId;
-use amcoff_bostader_api::{floorplan::{self, ToImageError}, AppState, EmailPassword, PersonalAf};
+use amcoff_bostader_api::{
+    floorplan::{self, ToImageError},
+    AppState, EmailPassword, PersonalAf,
+};
 use axum::{
     error_handling::HandleErrorLayer,
     extract::{Path, Query, State},
