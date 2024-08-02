@@ -1,4 +1,6 @@
-# amcoff-bostader
+# A(mcof)F Bostäder
+
+A custom [AF Bostäder](https://www.afbostader.se/) client.
 
 ## Developing
 
