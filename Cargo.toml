@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["archive", "afbostader", "server"]
+members = ["afbostader", "api", "archive"]
 
 [workspace.package]
 authors = ["Åke Amcoff <ake@amcoff.net>"]

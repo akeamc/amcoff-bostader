@@ -1,7 +1,7 @@
 use std::{io::Cursor, time::Duration};
 
 use afbostader::PropertyId;
-use afbostader_server::{floorplan::ToImageError, AppState, EmailPassword, PersonalAf};
+use amcoff_bostader_api::{floorplan::{self, ToImageError}, AppState, EmailPassword, PersonalAf};
 use axum::{
     error_handling::HandleErrorLayer,
     extract::{Path, Query, State},
@@ -141,7 +141,7 @@ async fn get_vacancy_floorplan(
 
     let res = state.client.get(url).send().await?;
 
-    let img = afbostader_server::floorplan::to_image(res).await?;
+    let img = floorplan::to_image(res).await?;
 
     let png = tokio::task::spawn_blocking(move || {
         let mut out = Cursor::new(Vec::new());

@@ -1,5 +1,5 @@
 [package]
-name = "afbostader-server"
+name = "amcoff-bostader-api"
 version = "0.1.0"
 edition = "2021"
 authors = ["Åke Amcoff <ake@amcoff.net>"]
