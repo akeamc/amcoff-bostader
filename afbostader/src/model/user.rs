@@ -13,13 +13,12 @@ pub struct User {
     mobile_phone: String,
     start_year: Option<i32>,
     start_semester: String,
+    #[serde(with = "super::yyyy_mm_dd::option")]
     date_of_birth: Option<Date>,
 }
 
 fn parse_dob(dob: &str) -> Option<Date> {
     const FMT: &[BorrowedFormatItem] = format_description!("[year][month][day]");
-
-    dbg!(dob);
 
     Date::parse(dob.get(..8)?, FMT).ok()
 }

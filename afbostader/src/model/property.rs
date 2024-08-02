@@ -1,6 +1,8 @@
 use core::{convert::Infallible, str::FromStr};
 
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
+use serde_with::{serde_as, DisplayFromStr};
 use time::Date;
 
 use crate::model::yyyy_mm_dd;
@@ -64,7 +66,7 @@ pub struct Address {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct QueuePosition {
-    pub position: u32,
+    pub position: Option<u32>,
     pub total_in_queue: u32,
 }
 
@@ -85,6 +87,7 @@ pub struct Worker {
     pub work_phone: String,
 }
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PropertyDetail {
     #[serde(flatten)]
@@ -101,4 +104,6 @@ pub struct PropertyDetail {
     pub electricity: String,
     pub internet: String,
     pub facing: String,
+    #[serde_as(as = "Option<DisplayFromStr>")]
+    pub blueprint: Option<Url>,
 }

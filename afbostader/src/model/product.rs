@@ -1,5 +1,6 @@
 use std::ops::Not;
 
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DisplayFromStr};
 use time::Date;
@@ -61,7 +62,7 @@ impl From<Product> for Property {
             property_type: p.typ.parse().unwrap(),
             area: p.area,
             queue_position: QueuePosition {
-                position: p.queue_number,
+                position: Some(p.queue_number),
                 total_in_queue: p.number_of_reservations,
             },
             reserved: p.reserved,
@@ -126,10 +127,13 @@ pub struct ProductDetail {
     pub electricity: String,
     pub internet: String,
     pub location: String,
+    pub blueprint: String,
 }
 
 impl From<ProductDetail> for PropertyDetail {
     fn from(p: ProductDetail) -> Self {
+        let www_afbostader_se = Url::parse("https://www.afbostader.se").unwrap();
+
         Self {
             property: p.product.into(),
             status: p.status,
@@ -149,6 +153,7 @@ impl From<ProductDetail> for PropertyDetail {
             electricity: p.electricity,
             internet: p.internet,
             facing: p.location,
+            blueprint: www_afbostader_se.join(&p.blueprint).ok(),
         }
     }
 }

@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { Temporal } from "@js-temporal/polyfill";
 import classNames from "classnames";
 import Image from "next/image";
-import { Key } from "react-feather";
 
 function QueueInfo(props: { position?: QueuePosition; className?: string }) {
   const { position, total_in_queue } = props.position || {};
@@ -15,13 +14,13 @@ function QueueInfo(props: { position?: QueuePosition; className?: string }) {
   return (
     <div
       className={classNames(
-        "inline-block rounded-[999px] bg-white px-2 py-1 text-sm text-black shadow-md",
+        "inline-block rounded-full bg-white px-2 py-1 text-sm text-black shadow-md",
         { "bg-gradient-to-tr from-yellow-500 to-yellow-400": position === 1 },
         props.className,
       )}
       title="Köplats"
     >
-      {position} av {total_in_queue}
+      {typeof position === "number" ? <>{position} av {total_in_queue}</> : <>{total_in_queue} i kön</>}
     </div>
   );
 }
@@ -109,8 +108,8 @@ export default function VacancyCell(props: { property: Property }) {
   const picture = area?.pictures?.[0];
 
   return (
-    <Link href="/" className="group">
-      <article className="flex flex-col gap-1 rounded-2xl p-2 leading-tight text-neutral-700 group-hover:bg-gray-100">
+    <Link href={`/bostad/${property?.id}`} className="group">
+      <article className={classNames("flex flex-col gap-1 rounded-b-2xl rounded-t-3xl p-2 leading-tight text-neutral-700 group-hover:bg-gray-100", {"bg-pink-100 ring ring-pink-400": property?.reserved})}>
         <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-2xl bg-neutral-100 shadow-sm">
           {picture && (
             <Image
@@ -135,7 +134,7 @@ export default function VacancyCell(props: { property: Property }) {
             minimumFractionDigits: 1,
             maximumFractionDigits: 1,
           })}{" "}
-          m<sup>2</sup> ⋅ vån {property?.floor}
+          m<sup>2</sup> ⋅ vån {property?.floor} ⋅ {property && "facing" in property ? property.facing : ""}
         </div>
         <div>
           <ReserveableSpan

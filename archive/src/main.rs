@@ -5,10 +5,10 @@ use std::{
     time::Duration,
 };
 
+use afbostader::{Client, Credentials, Property};
 use anyhow::Context;
 use archive_af::git::{add_commit_push_if_changed, repo_root};
 use clap::Parser;
-use client_af::{Client, Credentials, Property};
 use dotenvy::dotenv;
 use git2::Repository;
 use tokio::time::{interval, MissedTickBehavior};

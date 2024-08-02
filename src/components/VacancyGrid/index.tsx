@@ -8,10 +8,7 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
-  SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { useFilter } from "../FilterContext";
@@ -48,7 +45,7 @@ export default function VacancyGrid() {
   return (
     <>
       <Filter />
-      <div className="-m-2 grid grid-cols-3 gap-x-2 gap-y-4">
+      <div className="-m-2 grid gap-x-2 gap-y-4 sm:grid-cols-2 md:grid-cols-3">
         {table.getRowModel().rows.map((row) => (
           <VacancyCell key={row.id} property={row.original} />
         ))}

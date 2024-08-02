@@ -5,7 +5,7 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { listVacancies } from "@/lib/af";
+import AuthSection from "./AuthSection";
 
 export default async function Header() {
   const queryClient = new QueryClient();
@@ -17,7 +17,7 @@ export default async function Header() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <header className="flex items-center p-4">
+      <header className="flex items-center p-4 mx-auto w-full max-w-screen-xl">
         <div className="flex flex-1 justify-center">
           <span className="mr-auto font-serif text-xl font-medium">
             A
@@ -31,13 +31,15 @@ export default async function Header() {
           </span>
         </div>
         <div className="flex flex-1 justify-center">
-          <nav className="flex items-center rounded-[9999px] border px-3 shadow-sm">
+          <nav className="flex items-center rounded-full border px-3 shadow-sm">
             <AvailableLink />
             <NavLink href="/history">History</NavLink>
           </nav>
         </div>
         <div className="flex flex-1 justify-center">
-          <button className="ml-auto">Log in</button>
+          <div className="ml-auto">
+          <AuthSection />
+          </div>
         </div>
       </header>
     </HydrationBoundary>

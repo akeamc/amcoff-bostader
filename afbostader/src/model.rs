@@ -12,7 +12,7 @@ pub use user::*;
 
 #[cfg(test)]
 mod tests {
-    use crate::{Product, ProductDetail, PropertyDetail};
+    use crate::{Product, ProductDetail};
 
     #[test]
     fn parse_product() {
@@ -23,11 +23,6 @@ mod tests {
     #[test]
     fn parse_product_detail() {
         let json = include_bytes!("productDetail.json");
-        let p: ProductDetail = serde_json::from_slice(json).unwrap();
-
-        println!(
-            "{}",
-            serde_json::to_string(&PropertyDetail::from(p)).unwrap()
-        );
+        let _: ProductDetail = serde_json::from_slice(json).unwrap();
     }
 }

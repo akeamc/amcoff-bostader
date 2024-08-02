@@ -1,4 +1,6 @@
-use error::{Error, ErrorResponse};
+use std::str::FromStr;
+
+use error::ErrorResponse;
 use reqwest::{IntoUrl, Url};
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware, RequestBuilder};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
@@ -7,7 +9,7 @@ use select::{
     document::Document,
     predicate::{Class, Name, Predicate},
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub const USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
@@ -21,6 +23,7 @@ pub const USER_AGENT: &str = concat!(
 mod error;
 mod model;
 
+pub use error::Error;
 pub use model::*;
 use serde_json::Value;
 use tracing::warn;
@@ -75,6 +78,10 @@ impl Client {
         self
     }
 
+    pub fn has_credentials(&self) -> bool {
+        self.credentials.is_some()
+    }
+
     fn get(&self, url: impl IntoUrl) -> RequestBuilder {
         let builder = self.inner.get(url);
 
@@ -103,7 +110,16 @@ impl Client {
             .json::<Response>()
             .await?
         {
-            Response::Product { product } => Ok(product.into_iter().map(Into::into).collect()),
+            Response::Product { product } => Ok(product
+                .into_iter()
+                .map(Into::into)
+                .map(|mut p: Property| {
+                    if !self.has_credentials() {
+                        p.queue_position.position = None;
+                    }
+                    p
+                })
+                .collect()),
             Response::Error(e) => Err(e.into()),
         }
     }
@@ -126,7 +142,13 @@ impl Client {
             .json::<Response>()
             .await?
         {
-            Response::Product(product) => Ok(product.into()),
+            Response::Product(product) => {
+                let mut property: PropertyDetail = product.into();
+                if !self.has_credentials() {
+                    property.property.queue_position.position = None;
+                }
+                Ok(property)
+            }
             Response::Error(e) => Err(e.into()),
         }
     }
@@ -167,6 +189,10 @@ impl Client {
                 })
             })
             .collect();
+
+        let description = doc
+            .find(Class("product-area-info-content").descendant(Class("two-columnpage-content")))
+            .next();
 
         Ok(AreaDetail { pictures })
     }

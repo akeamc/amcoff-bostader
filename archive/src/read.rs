@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 
-use client_af::{Property, PropertyType};
+use afbostader::{Property, PropertyType};
 use git2::Repository;
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -29,8 +29,8 @@ pub struct QueueHistoryQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ArchiveEntry {
-    V010(client_af::Product),
-    V011(client_af::Property),
+    V010(afbostader::Product),
+    V011(afbostader::Property),
 }
 
 impl From<ArchiveEntry> for Property {
@@ -87,13 +87,19 @@ pub fn queue_history(repo: &Repository, query: &QueueHistoryQuery) -> Result<Cha
                 .filter_map(|map| map.get(&product_id))
                 .next_back()?;
 
-            if query.max.is_some_and(|max| v.queue_position.position > max) {
+            if query
+                .max
+                .is_some_and(|max| v.queue_position.position.unwrap() > max)
+            {
                 return None;
             }
 
             let data = data
                 .values()
-                .map(|map| map.get(&product_id).map(|i| i.queue_position.position))
+                .map(|map| {
+                    map.get(&product_id)
+                        .map(|i| i.queue_position.position.unwrap())
+                })
                 .collect();
 
             let mut name = format!("{}; {} ({} kvm)", v.area, v.description, v.size_sqm);

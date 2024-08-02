@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1.0.86", optional = true }
 clap = { version = "4.5.9", features = ["derive", "env"], optional = true }
-client-af = { version = "0.1.0", path = "../client" }
+afbostader = { version = "0.1.0", path = "../afbostader" }
 dotenvy = { version = "0.15.7", optional = true }
 git2 = "0.19.0"
 serde = { version = "1.0.204", features = ["derive"] }
