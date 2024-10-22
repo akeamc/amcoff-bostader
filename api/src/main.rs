@@ -213,14 +213,21 @@ async fn logout(jar: PrivateCookieJar) -> impl IntoResponse {
 }
 
 #[derive(Debug, Parser)]
-struct Args {}
+struct Args {
+    #[clap(long, env)]
+    cookie_key: Option<String>,
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let _ = dotenvy::dotenv();
     tracing_subscriber::fmt::init();
 
-    let Args {} = Args::parse();
+    let Args { cookie_key } = Args::parse();
+
+    let cookie_key = cookie_key
+        .map(|s| Key::from(s.as_bytes()))
+        .unwrap_or_else(Key::generate);
 
     let af = afbostader::Client::new();
 
@@ -255,7 +262,7 @@ async fn main() -> anyhow::Result<()> {
                 .build()
                 .unwrap(),
             af,
-            key: Key::generate(),
+            key: cookie_key,
         });
     let addr: SocketAddr = "[::]:8000".parse().unwrap();
     let listener = TcpListener::bind(addr).await.unwrap();
