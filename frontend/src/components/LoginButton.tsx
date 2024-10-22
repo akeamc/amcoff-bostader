@@ -85,7 +85,7 @@ export default function LoginButton({
           <button
             type="submit"
             disabled={loginMutation.isPending}
-            className="block disabled:opacity-50 w-full rounded-lg bg-gradient-to-tr from-green-500 to-green-400 py-2 text-sm font-semibold text-white shadow"
+            className="block w-full rounded-lg bg-gradient-to-tr from-green-500 to-green-400 py-2 text-sm font-semibold text-white shadow disabled:opacity-50"
           >
             Logga in
           </button>

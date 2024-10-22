@@ -20,7 +20,13 @@ function QueueInfo(props: { position?: QueuePosition; className?: string }) {
       )}
       title="Köplats"
     >
-      {typeof position === "number" ? <>{position} av {total_in_queue}</> : <>{total_in_queue} i kön</>}
+      {typeof position === "number" ? (
+        <>
+          {position} av {total_in_queue}
+        </>
+      ) : (
+        <>{total_in_queue} i kö</>
+      )}
     </div>
   );
 }
@@ -109,7 +115,12 @@ export default function VacancyCell(props: { property: Property }) {
 
   return (
     <Link href={`/bostad/${property?.id}`} className="group">
-      <article className={classNames("flex flex-col gap-1 rounded-b-2xl rounded-t-3xl p-2 leading-tight text-neutral-700 group-hover:bg-gray-100", {"bg-pink-100 ring ring-pink-400": property?.reserved})}>
+      <article
+        className={classNames(
+          "flex flex-col gap-1 rounded-b-2xl rounded-t-3xl p-2 leading-tight text-neutral-700 group-hover:bg-gray-100",
+          { "bg-pink-100 ring ring-pink-400": property?.reserved },
+        )}
+      >
         <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-2xl bg-neutral-100 shadow-sm">
           {picture && (
             <Image
@@ -129,12 +140,13 @@ export default function VacancyCell(props: { property: Property }) {
           {property?.area}
         </h3>
         <div>
-          {property?.short_description.toLocaleLowerCase()} ⋅{" "}
+          {property?.short_description} ⋅{" "}
           {property?.size_sqm.toLocaleString("sv", {
             minimumFractionDigits: 1,
             maximumFractionDigits: 1,
           })}{" "}
-          m<sup>2</sup> ⋅ vån {property?.floor} ⋅ {property && "facing" in property ? property.facing : ""}
+          m<sup>2</sup> ⋅ vån {property?.floor} ⋅{" "}
+          {property && "facing" in property ? property.facing : ""}
         </div>
         <div>
           <ReserveableSpan

@@ -27,10 +27,10 @@ export const AuthContext = createContext<AuthContextData | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren<{}>) {
   const queryClient = useQueryClient();
-  
+
   function invalidateQueries() {
     queryClient.invalidateQueries({
-      predicate: (q) => q.queryKey[0] === "vacancies"
+      predicate: (q) => q.queryKey[0] === "vacancies",
     });
   }
 
@@ -51,7 +51,7 @@ export function AuthProvider({ children }: PropsWithChildren<{}>) {
       queryClient.setQueryData(["user"], "unauthenticated");
       invalidateQueries();
     },
-  })
+  });
   const { data, isPending } = useQuery({
     queryKey: ["user"],
     queryFn: getUser,

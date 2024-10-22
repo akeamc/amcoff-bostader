@@ -17,18 +17,12 @@ export default async function Header() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <header className="flex items-center p-4 mx-auto w-full max-w-screen-xl">
+      <header className="mx-auto flex w-full max-w-screen-xl items-center p-4">
         <div className="flex flex-1 justify-center">
-          <span className="mr-auto font-serif text-xl font-medium">
-            A
-            <Link
-              className="text-neutral-400 hover:underline"
-              href="https://amcoff.net"
-            >
-              (mcof)
-            </Link>
-            F <span className="max-sm:hidden">Bostäder</span>
-          </span>
+          <Link className="mr-auto font-serif text-xl font-medium" href="/">
+            A<span className="text-neutral-400">(mcof)</span>F{" "}
+            <span className="max-sm:hidden">Bostäder</span>
+          </Link>
         </div>
         <div className="flex flex-1 justify-center">
           <nav className="flex items-center rounded-full border px-3 shadow-sm">
@@ -37,7 +31,7 @@ export default async function Header() {
         </div>
         <div className="flex flex-1 justify-center">
           <div className="ml-auto">
-          <AuthSection />
+            <AuthSection />
           </div>
         </div>
       </header>

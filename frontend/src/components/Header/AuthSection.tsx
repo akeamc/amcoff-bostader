@@ -1,17 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useAuth } from "../AuthContext";
 import LoginButton from "../LoginButton";
 
 function Avatar() {
-  const { user, logoutMutation } = useAuth();
+  const { user } = useAuth();
 
   if (!user) return <div className="size-8 rounded-full bg-neutral-300" />;
 
   return (
-    <button onClick={() => logoutMutation.mutate()} className="size-8 rounded-full bg-green-500 text-white flex items-center justify-center text-lg leading-none">
+    <Link
+      href="/konto"
+      className="text-md flex size-8 items-center justify-center rounded-full bg-green-500 leading-none text-white"
+    >
       {user.first_name.substring(0, 1)}
-    </button>
+      {user.last_name.substring(0, 1)}
+    </Link>
   );
 }
 

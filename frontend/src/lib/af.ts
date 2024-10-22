@@ -1,3 +1,5 @@
+export const API_URL = process.env.API_URL || "http://localhost:8000";
+
 export interface Address {
   street: string;
   city: string;
@@ -44,22 +46,23 @@ export interface AreaDetail extends Area {
 }
 
 export function listVacancies(): Promise<Property[]> {
-  return fetch("http://localhost:8000/vacancies", {
+  return fetch(`${API_URL}/vacancies`, {
     cache: "default",
     credentials: "include",
   }).then((res) => res.json());
 }
 
 export function getVacancy(id: number): Promise<PropertyDetail> {
-  return fetch(`http://localhost:8000/vacancies/${encodeURIComponent(id)}`, {
+  return fetch(`${API_URL}/vacancies/${encodeURIComponent(id)}`, {
     cache: "default",
     credentials: "include",
   }).then((res) => res.json());
 }
 
 export function getArea(areaName: string): Promise<AreaDetail> {
-  return fetch(`http://localhost:8000/areas/${encodeURIComponent(areaName)}`, {
+  return fetch(`${API_URL}/areas/${encodeURIComponent(areaName)}`, {
     cache: "default",
+    credentials: "include",
   }).then((res) => res.json());
 }
 
@@ -76,7 +79,7 @@ export interface UserDetails {
 }
 
 export async function getUser(): Promise<UserDetails | "unauthenticated"> {
-  const res = await fetch("http://localhost:8000/user", {
+  const res = await fetch(`${API_URL}/user`, {
     cache: "default",
     credentials: "include",
   });
@@ -87,7 +90,7 @@ export async function getUser(): Promise<UserDetails | "unauthenticated"> {
 }
 
 export async function login(details: EmailPassword): Promise<LoginResponse> {
-  const res = await fetch(`http://localhost:8000/login`, {
+  const res = await fetch(`${API_URL}/login`, {
     headers: {
       "content-type": "application/json",
     },
@@ -106,5 +109,8 @@ export async function login(details: EmailPassword): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<Response> {
-  return await fetch("http://localhost:8000/logout", {cache: "default", credentials: "include"});
+  return await fetch(`${API_URL}/logout`, {
+    cache: "default",
+    credentials: "include",
+  });
 }

@@ -28,7 +28,7 @@ pub struct FullAddress {
     street: String,
     city: String,
     postal_code: String,
-    county: String,
+    county: Option<String>,
     country: String,
 }
 
@@ -82,7 +82,7 @@ pub struct UserInfo {
     pub street: String,
     pub postalcode: String,
     pub city: String,
-    pub county: String,
+    pub county: Option<String>,
     pub country: String,
     pub mobilephone: String,
     pub startyear: String,

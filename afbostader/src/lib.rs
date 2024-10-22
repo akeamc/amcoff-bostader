@@ -75,6 +75,10 @@ impl Client {
         }
     }
 
+    pub fn inner(&self) -> &ClientWithMiddleware {
+        &self.inner
+    }
+
     pub fn with_credentials(mut self, credentials: Credentials) -> Self {
         self.credentials = Some(credentials);
         self

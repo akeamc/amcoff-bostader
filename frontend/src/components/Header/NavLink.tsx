@@ -12,7 +12,7 @@ export function AvailableLink() {
 
   return (
     <NavLink href="/" className="inline-flex items-center">
-      Lediga bostäder
+      Bläddra
       {typeof count === "number" && (
         <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600">
           {count}

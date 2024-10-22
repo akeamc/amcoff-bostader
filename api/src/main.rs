@@ -1,4 +1,4 @@
-use std::{io::Cursor, time::Duration};
+use std::{io::Cursor, net::SocketAddr, time::Duration};
 
 use afbostader::PropertyId;
 use amcoff_bostader_api::{
@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tower::{buffer::BufferLayer, limit::RateLimitLayer, BoxError, ServiceBuilder};
 use tower_http::cors::CorsLayer;
+use tracing::{error, info};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct GeocodeQuery {
@@ -105,8 +106,8 @@ async fn get_vacancy_detail(
 
 #[derive(Debug, thiserror::Error)]
 enum FloorplanError {
-    #[error("http error")]
-    Http(#[from] reqwest::Error),
+    #[error("http error: {0}")]
+    Http(#[from] reqwest_middleware::Error),
     #[error(transparent)]
     ToImageError(#[from] ToImageError),
     #[error(transparent)]
@@ -124,6 +125,8 @@ where
 
 impl IntoResponse for FloorplanError {
     fn into_response(self) -> Response {
+        error!("Error: {:?}", self);
+
         (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
     }
 }
@@ -142,7 +145,7 @@ async fn get_vacancy_floorplan(
         return Ok(StatusCode::NO_CONTENT.into_response());
     };
 
-    let res = state.client.get(url).send().await?;
+    let res = state.af.inner().get(url).send().await?;
 
     let img = floorplan::to_image(res).await?;
 
@@ -186,7 +189,6 @@ async fn login(
         .http_only(true)
         .path("/")
         .permanent()
-        .secure(false)
         .same_site(SameSite::None)
         .build();
 
@@ -255,7 +257,9 @@ async fn main() -> anyhow::Result<()> {
             af,
             key: Key::generate(),
         });
-    let listener = TcpListener::bind("[::]:8000").await.unwrap();
+    let addr: SocketAddr = "[::]:8000".parse().unwrap();
+    let listener = TcpListener::bind(addr).await.unwrap();
+    info!("Listening on {}", addr);
 
     axum::serve(listener, app).await.unwrap();
 

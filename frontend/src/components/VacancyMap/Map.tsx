@@ -1,6 +1,6 @@
 "use client";
 
-import { Address, Property } from "@/lib/af";
+import { Address, API_URL, Property } from "@/lib/af";
 import { useVacancies } from "@/lib/hooks";
 import { useQuery } from "@tanstack/react-query";
 import L from "leaflet";
@@ -25,7 +25,7 @@ function usePlace(address: Address) {
     ],
     queryFn: async () => {
       const data = await fetch(
-        `http://localhost:8000/geocode?street=${encodeURIComponent(address.street)}&postalcode=${address.postal_code}&city=${address.city}`,
+        `${API_URL}/geocode?street=${encodeURIComponent(address.street)}&postalcode=${address.postal_code}&city=${address.city}`,
         { cache: "force-cache" },
       ).then((res) => res.json());
       const place = data?.[0];

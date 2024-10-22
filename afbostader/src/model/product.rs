@@ -48,12 +48,22 @@ pub struct Product {
     pub rent: u32,
 }
 
+fn transform_short_description(short_description: &str) -> String {
+    let mut chars = short_description.chars();
+
+    // capitalize the first letter, lowercase the rest
+    let first = chars.next().into_iter().flat_map(|c| c.to_uppercase());
+    let rest = chars.flat_map(|c| c.to_lowercase());
+
+    first.into_iter().chain(rest).collect()
+}
+
 impl From<Product> for Property {
     fn from(p: Product) -> Self {
         Self {
             id: p.product_id,
             description: p.description,
-            short_description: p.short_description,
+            short_description: transform_short_description(&p.short_description),
             address: Address {
                 street: p.address,
                 city: p.city,

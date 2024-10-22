@@ -1,7 +1,14 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getArea, getVacancy, listVacancies, Property, PropertyDetail } from "./af";
+import {
+  getArea,
+  getUser,
+  getVacancy,
+  listVacancies,
+  Property,
+  PropertyDetail,
+} from "./af";
 import { useMemo } from "react";
 
 export function useVacancies() {
@@ -12,13 +19,14 @@ export function useVacancies() {
   });
 }
 
-export function useVacancy(id: number) {
+export function useVacancy(id: number, initialData?: PropertyDetail) {
   const queryClient = useQueryClient();
 
   return useQuery<PropertyDetail | Property>({
     queryKey: ["vacancies", id],
     queryFn: () => getVacancy(id),
     refetchInterval: 30_000,
+    initialData,
     placeholderData: () => {
       return queryClient
         .getQueryData<Property[]>(["vacancies"])
@@ -44,5 +52,12 @@ export function useArea(name?: string) {
     queryKey: ["areas", name],
     enabled: !!name,
     queryFn: () => getArea(name!),
+  });
+}
+
+export function useUser() {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: getUser,
   });
 }
