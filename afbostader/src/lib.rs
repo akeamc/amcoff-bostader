@@ -5,7 +5,7 @@ use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use secrecy::{ExposeSecret, SecretString};
 use select::{
     document::Document,
-    predicate::{Class, Name, Predicate},
+    predicate::{Attr, Class, Name, Predicate},
 };
 use serde::Deserialize;
 
@@ -20,6 +20,7 @@ pub const USER_AGENT: &str = concat!(
 
 mod error;
 mod model;
+pub mod voodoo;
 
 pub use error::Error;
 pub use model::*;
@@ -241,5 +242,19 @@ impl Client {
                 )))
             }
         }
+    }
+
+    pub async fn aptus_token(&self) -> Result<aptus::Token, Error> {
+        let res = self.get("https://www.afbostader.se/dina/sidor/boka-tvattid/").send().await?;
+
+        let html = res.text().await?;
+
+        let doc = Document::from(html.as_str());
+
+        let input = doc.find(Attr("id", "hidAptusToken")).next();
+
+        dbg!(input);
+
+        todo!()
     }
 }

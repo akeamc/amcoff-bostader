@@ -1,0 +1,11 @@
+[package]
+name = "aptus"
+version = "0.1.0"
+edition = "2021"
+description = "Aptus booking system"
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+reqwest.workspace = true
+thiserror = "1.0.65"

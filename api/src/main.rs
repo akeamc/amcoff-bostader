@@ -180,6 +180,12 @@ async fn get_area_detail(
     ))
 }
 
+async fn get_laundry(af: PersonalAf) -> Result<impl IntoResponse, AfError> {
+    let token = af.aptus_token().await;
+
+    Ok("wow")
+}
+
 async fn login(
     State(state): State<AppState>,
     jar: PrivateCookieJar,
@@ -236,6 +242,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/vacancies/:id", get(get_vacancy_detail))
         .route("/vacancies/:id/floorplan", get(get_vacancy_floorplan))
         .route("/areas/:name", get(get_area_detail))
+        .route("/laundry", get(get_laundry))
         .route("/login", post(login))
         .route("/user", get(user))
         .route("/logout", get(logout))
